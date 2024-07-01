@@ -1,6 +1,9 @@
 import Note from './components/Note'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import NotesDisplay from './components/NotesDisplay'
+import NoteForm from './components/NoteForm'
+import ShowButton from './components/ShowButton'
 
 
 const App = (props) => {
@@ -18,49 +21,40 @@ const App = (props) => {
     })
   }, [])
 
-  console.log('render', notes.length, 'notes')
-
   // For generating the list of notes to show 
   const notesToShow = showAll
     ? notes 
     : notes.filter(note => note.important)
 
-  // Component controller
+  // Controller for new note input
   const handleNoteChange = (event) => {
     setNewNote(event.target.value)
   }
 
-  // Event handler for adding a new note to the notes array state
+  // Event handler for adding a new note to the server
   const handleNewNote = (event) => {
     event.preventDefault()
+    // New json note to add to server
+    // Id omitted to let the server generate the id
     const newNoteObject = {
-      id: notes.length + 1,
       content: newNote,
       important: Math.random() < 0.5
     }
-    setNotes(notes.concat(newNoteObject))
-    setNewNote("")
+    axios
+    .post('http://localhost:3001/notes', newNoteObject)
+    .then(response => {
+      console.log(response)
+    })
   }
 
   return (
     <div>
       <h1>Notes</h1>
       <div> 
-        <button onClick={() => setShowAll(!showAll)}>
-          show {showAll? "important" : "all"}
-        </button>
+        <ShowButton showAll={showAll} setShowAll={setShowAll}/>
       </div>
-      <ul>
-        {notesToShow.map((note) => 
-        <Note key={note.id} note={note}/>)}
-      </ul>
-      <form onSubmit={handleNewNote}>
-        <input
-          value={newNote}
-          onChange={handleNoteChange}
-        />
-        <button type="submit">save</button>
-      </form>
+      <NotesDisplay notesToShow={notesToShow}/>
+      <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={handleNoteChange}/>
     </div>
   )
 }
