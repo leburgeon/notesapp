@@ -4,6 +4,7 @@ import axios from 'axios'
 import NotesDisplay from './components/NotesDisplay'
 import NoteForm from './components/NoteForm'
 import ShowButton from './components/ShowButton'
+import noteService from './services/notes'
 
 
 const App = (props) => {
@@ -15,12 +16,12 @@ const App = (props) => {
 
   // Effect hook for fetching the notes data from server
   useEffect(() => {
-    axios.get('http://localhost:3001/notes')
-    .then(response => {
-      setNotes(response.data)
-    })
+    noteService
+      .getAll()
+      .then(response => {
+        setNotes(response.data)
+      })
   }, [])
-
   // For generating the list of notes to show based on the showall filter
   const notesToShow = showAll
     ? notes 
@@ -41,23 +42,24 @@ const App = (props) => {
       important: Math.random() < 0.5
     }
     // Axios post request returns promise
-    axios
-    .post('http://localhost:3001/notes', newNoteObject)
-    .then(response => {
-      setNotes(notes.concat(response.data));
-      setNewNote("")
-    })
+    noteService
+      .create(newNoteObject)
+      .then(response => {
+        setNotes(notes.concat(response.data))
+        setNewNote('')
+      })
   }
   
   // Event handler for toggling note importance
   const toggleImportanceOf = (id) => {
-    const urlOfId = `http://localhost:3001/notes/${id}`
     const note = notes.find(note => note.id === id);
     const changedNote = {...note, important: !note.important}
 
-    axios.put(urlOfId, changedNote).then(response => {
-      setNotes(notes.map(note => note.id === id ? response.data : note))
-    })
+    noteService
+      .update(id, changedNote)
+      .then(response => 
+        setNotes(notes.map(note => note.id !== id ? note : response.data))
+      )
   }
 
   return (
