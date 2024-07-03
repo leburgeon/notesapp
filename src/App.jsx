@@ -75,7 +75,13 @@ const App = (props) => {
       .then(changedNote => 
         // This call updates the notes with the updated note, using the id to identify it in the notes array
         setNotes(notes.map(note => note.id !== id ? note : changedNote))
-      )
+      ).catch(error => {
+        alert(
+          `the note '${note.content}' was already deleted from the server`
+        )
+        setNotes(notes.filter(note => note.id !== id))
+        console.log(error)
+      })
   }
 
   return (
