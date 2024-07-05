@@ -5,6 +5,8 @@ import NotesDisplay from './components/NotesDisplay'
 import NoteForm from './components/NoteForm'
 import ShowButton from './components/ShowButton'
 import noteService from './services/notes'
+import Notification from './components/Notification'
+import Footer from './components/Footer'
 
 
 const App = (props) => {
@@ -14,6 +16,8 @@ const App = (props) => {
   const [newNote, setNewNote] = useState("")
   // State for maintaining importance filter
   const [showAll, setShowAll] = useState(true)
+  // Piece of state for the error message
+  const [errorMessage, setErrorMessage] = useState(null)
 
 
   // Effect hook for fetching the notes data from server
@@ -24,7 +28,6 @@ const App = (props) => {
     noteService
       .getAll()
       .then(initialData => {
-        console.log('effect')
         setNotes(initialData)
       })
   }, [])
@@ -76,22 +79,26 @@ const App = (props) => {
         // This call updates the notes with the updated note, using the id to identify it in the notes array
         setNotes(notes.map(note => note.id !== id ? note : changedNote))
       ).catch(error => {
-        alert(
-          `the note '${note.content}' was already deleted from the server`
+        setErrorMessage(
+          `Note '${note.content}' was already removed from server`
         )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
         setNotes(notes.filter(note => note.id !== id))
-        console.log(error)
       })
   }
 
   return (
     <div>
       <h1>Notes</h1>
+      <Notification message={errorMessage}/>
       <div> 
         <ShowButton showAll={showAll} setShowAll={setShowAll}/>
       </div>
       <NotesDisplay notesToShow={notesToShow} toggleImportanceOf={toggleImportanceOf}/>
       <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={handleNoteChange}/>
+      <Footer/>
     </div>
   )
 }
