@@ -1,6 +1,7 @@
 import Note from "./Note"
 
 const NotesDisplay = ({ notesToShow, toggleImportanceOf }) => {
+    console.log("foo:", notesToShow)
     return (
         <>
             {notesToShow.map((note) => 
