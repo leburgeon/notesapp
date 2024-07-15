@@ -13,6 +13,7 @@ app.use(cors())
 
 app.use(express.static('dist'))
 
+const mongoURI = 'mongodb+srv://lewisburgess:!K9d_85NFr!3ebn@fsocluster.z2ocxgx.mongodb.net/?retryWrites=true&w=majority&appName=FSOcluster'
 
 // Custom middlewear function for logging the req infos
 const middleLoggMaker = (req, res, next) => {
@@ -21,6 +22,7 @@ const middleLoggMaker = (req, res, next) => {
   console.log(req.body)
   next()
 }
+
 app.use(middleLoggMaker)
 
 let notes = [
