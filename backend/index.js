@@ -7,23 +7,25 @@ const app = express()
 // Uses the json middlewear function to parse the raw text of post requests,
 // appends the parsed json data to the 'body' attr of the request object
 app.use(express.json())
-
 // For processing responses with a cross-origin-resource-sharing mechanism 
 app.use(cors())
-
+// Middlewear for sending static resources upon certain requests
+// Static takes an optional path-argument
 app.use(express.static('dist'))
 
-const mongoURI = 'mongodb+srv://lewisburgess:!K9d_85NFr!3ebn@fsocluster.z2ocxgx.mongodb.net/?retryWrites=true&w=majority&appName=FSOcluster'
+const mongoose = require('mongoose')
+const url = process.env.MONGODB_URL
+console.log(url)
 
-// Custom middlewear function for logging the req infos
-const middleLoggMaker = (req, res, next) => {
-  console.log(req.method)
-  console.log(req.path)
-  console.log(req.body)
-  next()
-}
+mongoose.set('strictQuery',false)
+mongoose.connect(url)
 
-app.use(middleLoggMaker)
+const noteSchema = new mongoose.Schema({
+  content: String,
+  important: Boolean,
+})
+
+const Note = mongoose.model('Note', noteSchema)
 
 let notes = [
     {
@@ -49,7 +51,9 @@ app.get('/', (_request, response) => {
 })
 
 app.get('/api/notes', (_request, response) => {
-  response.json(notes)
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
 })
 
 app.get('/api/notes/:id', (request, response) => {
