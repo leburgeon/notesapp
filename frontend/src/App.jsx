@@ -6,7 +6,6 @@ import NoteForm from './components/NoteForm'
 import ShowButton from './components/ShowButton'
 import noteService from './services/notes'
 import Notification from './components/Notification'
-import Footer from './components/Footer'
 
 
 const App = (props) => {
@@ -98,7 +97,6 @@ const App = (props) => {
       </div>
       <NotesDisplay notesToShow={notesToShow} toggleImportanceOf={toggleImportanceOf}/>
       <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={handleNoteChange}/>
-      <Footer/>
     </div>
   )
 }

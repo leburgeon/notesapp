@@ -1,3 +1,6 @@
+// dotenv used in node.js applications to load environment variables from a .env file into process.env
+require('dotenv').config()
+
 // Different way of importing modules
 const express = require("express")
 // For importing cors for changing access-control-allow-origin
@@ -13,37 +16,7 @@ app.use(cors())
 // Static takes an optional path-argument
 app.use(express.static('dist'))
 
-const mongoose = require('mongoose')
-const url = process.env.MONGODB_URL
-console.log(url)
-
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
-
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
-})
-
-const Note = mongoose.model('Note', noteSchema)
-
-let notes = [
-    {
-      id: "1",
-      content: "HTML is easy",
-      important: true
-    },
-    {
-      id: "2",
-      content: "Browser can execute only JavaScript",
-      important: false
-    },
-    {
-      id: "3",
-      content: "GET and POST are the most important methods of HTTP protocol",
-      important: true
-    }
-  ]
+const Note = require('./models/note')
 
 // Route mapping for the root url
 app.get('/', (_request, response) => {
@@ -58,14 +31,9 @@ app.get('/api/notes', (_request, response) => {
 
 app.get('/api/notes/:id', (request, response) => {
   const id = request.params.id
-  const note = notes.find(note => note.id === id)
-
-  if (note){
+  Note.findById(request.params.id).then(note => {
     response.json(note)
-  } else {
-    response.statusMessage = "That knot could note be found!";
-    response.status(404).end()
-  }
+  })
 })
 
 app.delete('/api/notes/:id', (request, response) => {
@@ -74,14 +42,6 @@ app.delete('/api/notes/:id', (request, response) => {
   notes = notes.filter(note => note.id !== id)
   response.status(204).end() 
 })
-
-// Method for generating an id
-const generateId = () => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map(n => Number(n.id)))
-    : 0
-  return String(maxId + 1)
-}
 
 app.post('/api/notes', (request, response) => {
   const body = request.body
@@ -92,15 +52,13 @@ app.post('/api/notes', (request, response) => {
     })
   }
 
-  const note = {
+  const note = new Note({
     content: body.content,
-    important: Boolean(body.important) || false,
-    id: generateId(),
-  }
+    important: body.important || false
+  })
 
-  notes = notes.concat(note)
+  note.save().then(savedNote => response.json(savedNote))
 
-  response.json(note)
 })
 
 const unknownEndpoint = (request, response) => {
@@ -109,7 +67,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://${PORT}`);
