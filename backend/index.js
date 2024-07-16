@@ -23,14 +23,15 @@ app.get('/', (_request, response) => {
   response.send('<h1>Hello World!</h1>')
 })
 
+// Mongooose getall
 app.get('/api/notes', (_request, response) => {
   Note.find({}).then(notes => {
     response.json(notes)
   })
 })
 
+// Mongoose find by id
 app.get('/api/notes/:id', (request, response) => {
-  const id = request.params.id
   Note.findById(request.params.id).then(note => {
     response.json(note)
   })
@@ -43,6 +44,7 @@ app.delete('/api/notes/:id', (request, response) => {
   response.status(204).end() 
 })
 
+// Mongoose save a new note
 app.post('/api/notes', (request, response) => {
   const body = request.body
 
