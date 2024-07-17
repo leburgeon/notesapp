@@ -31,17 +31,26 @@ app.get('/api/notes', (_request, response) => {
 })
 
 // Mongoose find by id
-app.get('/api/notes/:id', (request, response) => {
-  Note.findById(request.params.id).then(note => {
-    response.json(note)
-  })
+app.get('/api/notes/:id', (request, response, next) => {
+  Note.findById(request.params.id)
+    .then(note => {
+      if (note){
+        response.json(note)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/notes/:id', (request, response) => {
-  console.log("delete alled ")
-  const id = request.params.id
-  notes = notes.filter(note => note.id !== id)
-  response.status(204).end() 
+  console.log("delete called ")
+  Note.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))  
+  
 })
 
 // Mongoose save a new note
@@ -69,6 +78,24 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
+
+// Error handling middleware must be loaded after all the routes.
+// Error handlers take four parameters. 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+// this has to be the last loaded middleware, also all the routes should be registered before this!
+app.use(errorHandler)
+
+
+// environemnt variable is saved in .env file, which is processed and loaded into application using dotenv
 const PORT = process.env.PORT
 
 app.listen(PORT, () => {
