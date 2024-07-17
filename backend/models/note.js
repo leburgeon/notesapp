@@ -20,7 +20,10 @@ mongoose.connect(url)
   })
 
 const noteSchema = new mongoose.Schema({
-  content: String,
+  content: {
+    type: String,
+    required: [true, 'This note needs a content!']
+  },
   important: Boolean,
 })
 

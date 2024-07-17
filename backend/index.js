@@ -23,7 +23,7 @@ app.get('/', (_request, response) => {
   response.send('<h1>Hello World!</h1>')
 })
 
-// Mongooose getall
+// Mongooose get all
 app.get('/api/notes', (_request, response) => {
   Note.find({}).then(notes => {
     response.json(notes)
@@ -43,6 +43,7 @@ app.get('/api/notes/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
+// Mongoose find by id and delete
 app.delete('/api/notes/:id', (request, response) => {
   console.log("delete called ")
   Note.findByIdAndRemove(request.params.id)
@@ -54,22 +55,36 @@ app.delete('/api/notes/:id', (request, response) => {
 })
 
 // Mongoose save a new note
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, responsea, next) => {
   const body = request.body
 
-  if (!body.content) {
-    return response.status(400).json({ 
-      error: 'content missing' 
-    })
-  }
 
   const note = new Note({
     content: body.content,
     important: body.important || false
   })
 
-  note.save().then(savedNote => response.json(savedNote))
+  // If the document failes to save, an exception is thrown, which is passed to the error-handler
+  note.save()
+    .then(savedNote => response.json(savedNote))
+    .catch(error => next(error))
 
+})
+
+// Mongoose savebyid and update
+app.put('/api/notes/:id', (request, response, next) => {
+  const body = request.body
+
+  const note = {
+    content: body.content,
+    important: body.important
+  }
+
+  Note.findByIdAndUpdate(request.params.id, note, { new: true })
+    .then(updatedNote => {
+      response.json(updatedNote)
+    })
+    .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -84,9 +99,15 @@ app.use(unknownEndpoint)
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
+  // For handling 'cast error' where the request contains bad formatting
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   } 
+
+  // For handling a mongoose validation error
+  if (error.name === 'ValidationError'){
+    return response.status(400).json({error: error})
+  }
 
   next(error)
 }
