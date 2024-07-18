@@ -1,28 +1,10 @@
 const mongoose = require('mongoose')
-// dotenv library used to set the environment variable from the .env file
-require('dotenv').config()
-
-mongoose.set('strictQuery', false)
-
-
-const url = process.env.MONGODB_URL
-
-
-console.log('connecting to', url)
-
-mongoose.connect(url)
-
-  .then(result => {
-    console.log('connected to MongoDB')
-  })
-  .catch(error => {
-    console.log('error connecting to MongoDB:', error.message)
-  })
 
 const noteSchema = new mongoose.Schema({
   content: {
     type: String,
-    required: [true, 'This note needs a content!']
+    required: true,
+    minlength: 5
   },
   important: Boolean,
 })
@@ -34,6 +16,5 @@ noteSchema.set('toJSON', {
     delete returnedObject.__v
   }
 })
-
 
 module.exports = mongoose.model('Note', noteSchema)
