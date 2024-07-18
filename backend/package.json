@@ -10,7 +10,8 @@
     "deploy": "fly deploy",
     "deploy:full": "npm run build:ui && npm run deploy",
     "logs:prod": "fly logs",
-    "debug:chrome": "nodemon --inspect index.js"
+    "debug:chrome": "nodemon --inspect index.js",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
@@ -22,7 +23,11 @@
     "mongoose": "^8.5.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.7.0",
     "@flydotio/dockerfile": "^0.5.7",
+    "@stylistic/eslint-plugin-js": "^2.3.0",
+    "eslint": "^9.7.0",
+    "globals": "^15.8.0",
     "nodemon": "^3.1.4"
   }
 }
