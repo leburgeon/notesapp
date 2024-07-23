@@ -4,14 +4,15 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "build:ui": "@powershell Remove-Item -Recurse -Force dist && cd ../frontend && npm run build && @powershell Copy-Item dist -Recurse ../backend",
     "deploy": "fly deploy",
     "deploy:full": "npm run build:ui && npm run deploy",
     "logs:prod": "fly logs",
     "debug:chrome": "nodemon --inspect index.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --test"
+    
   },
   "author": "",
   "license": "ISC",
