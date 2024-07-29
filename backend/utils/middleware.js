@@ -1,4 +1,5 @@
 const logger = require('./logger')
+const { passwordStrength } = require('check-password-strength')
 
 const requestLogger = (request, response, next) => {
   logger.info('Method:', request.method)
@@ -19,13 +20,37 @@ const errorHandler = (error, request, response, next) => {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
+  } else if (error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')){
+    return response.status(400).json({ error: 'expected `username` to be unique'})
+  } else if (error.name === 'UserCreationError'){
+    return response.status(400).json({error: error.message})
   }
 
   next(error)
 }
 
+const passwordValidator = (req, res, next) => {
+  if (req.method === "POST"){
+    const password = req.body.password;
+    if (!password){
+      const passwordError = new Error('Password is required')
+      passwordError.name = 'UserCreationError'
+      return next(passwordError)
+    }
+    const strength = passwordStrength(password).id;
+    if (strength < 2) {
+      const passwordError = new Error('Password too weak');
+      passwordError.name = 'UserCreationError';
+      return next(passwordError);
+    }
+  }
+
+  next();
+};
+
 module.exports = {
   requestLogger,
   unknownEndpoint,
-  errorHandler
+  errorHandler,
+  passwordValidator
 }
