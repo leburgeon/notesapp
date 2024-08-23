@@ -24,8 +24,6 @@ const App = () => {
   const [password, setPassword] = useState('')
   // Piece of state for storing the user
   const [user, setUser] = useState(null)
-  // State for showing the login form or not
-  const [loginVisible, setLoginVisible] = useState(false)
 
   // Method for handling logging in
   const handleLogin = async (event) => {
@@ -93,7 +91,7 @@ const App = () => {
   // Generates the form component for adding a new note
   const notesForm = () => (
     <Togglable buttonLabel={'add note'}>
-      <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={({target}) => setNewNote(target.value)}/>
+      <NoteForm addNote={addNote}/>
     </Togglable>
   )
 
@@ -115,19 +113,8 @@ const App = () => {
     : notes.filter(note => note.important)
 
 
-  // Event handler for adding a new note to the server using axios post request
-  const handleNewNote = (event) => {
-    event.preventDefault()
-    // New json note to add to server
-    // Id omitted to let the server generate the id
-    const newNoteObject = {
-      content: newNote,
-      important: Math.random() < 0.5
-    }
-
-    // create method from the notes.js module takes the new note object and internally uses Axoios to make a post request
-    // create returns a promise that if fulfilled returns the response from the post request
-    // response appeneded to a copy of the notes, which is used to update the state responsible for displaying the notes
+  // Method for adding a new note object using the note service
+  const addNote = (newNoteObject) => {
     noteService
       .create(newNoteObject)
       .then(returnedNote => {
