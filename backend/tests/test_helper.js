@@ -1,6 +1,8 @@
 const Note = require('../models/note')
 const User = require('../models/user')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const config = require('../utils/config')
 
 const initialNotes = [
   {
@@ -15,10 +17,16 @@ const initialNotes = [
   }
 ]
 
+const initialUser = {
+  username: 'groot',
+  name: 'foo',
+  password: 'BigStr0ng5ecre!t'
+}
+
 const initialiseDatabase = async () =>{
   await User.deleteMany({})
-  const passwordHash = await bcrypt.hash('sekret', 10)
-  const user = new User({username: 'groot', passwordHash})
+  const passwordHash = await bcrypt.hash(initialUser.password, 10)
+  const user = new User({username: initialUser.username, name:initialUser.name, passwordHash})
   await user.save()
 
   initialNotes.forEach(note => {
@@ -36,7 +44,8 @@ const usersInDb = async () => {
 
 
 const nonExistingId = async () => {
-  const note = new Note({ content: 'willremovethissoon' })
+  const validId = await validUserId()
+  const note = new Note({ content: 'willremovethissoon', user: validId})
   await note.save()
   await note.deleteOne()
 
@@ -44,14 +53,24 @@ const nonExistingId = async () => {
 }
 
 const notesInDb = async () => {
-  const notes = await Note.find({})
+  const notes = await Note.find({}).populate('user', {username: 1, name: 1})
   return notes.map(note => note.toJSON())
 }
 
 const validUserId = async () => {
-  const notes = await Note.find({})
-  return notes[0].toJSON().user
+  const user = await User.findOne({})
+  return user._id
 }
 
-module.exports = { initialNotes, nonExistingId, notesInDb, usersInDb, initialiseDatabase, validUserId
+const getFirstUser = async () => {
+  const users = await usersInDb();
+  return users[0];
+};
+
+const oneMinuteToken = async () => {
+  const { username, id } = await getFirstUser();
+  return jwt.sign({ id, username }, config.SECRET, { expiresIn: 60 });
+};
+
+module.exports = { initialUser, initialNotes, nonExistingId, notesInDb, usersInDb, initialiseDatabase, validUserId, oneMinuteToken
 }

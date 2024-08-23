@@ -4,16 +4,31 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
-const bcrypt = require('bcrypt')
-const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 const helper = require('./test_helper')
 
 const Note = require('../models/note')
+const { SECRET } = require('../utils/config')
 
 describe('when there is one user in the database', () => {
   beforeEach(async () => {
     await helper.initialiseDatabase()
+  })
+  test('login with correct credentials returns valid token for correct user', async () =>{
+    const initialUser = helper.initialUser
+
+    const response = await api
+      .post('/api/login')
+      .send({
+        username: initialUser.username,
+        password: initialUser.password
+      })
+      .expect(200)
+
+    const decodedToken = jwt.verify(response.body.token, SECRET)
+
+    assert(decodedToken.username === initialUser.username)
   })
 
   test('creation of user succeeds with fresh username', async () => {
@@ -152,16 +167,16 @@ describe('when there is one user in the database', () => {
     describe('addition of a new note', () => {
 
       test('succeeds with valid data', async () => {
-        const validId = await helper.validUserId()
+        const oneMinuteToken = await helper.oneMinuteToken()
 
         const newNote = {
           content: 'async/await simplifies making async calls',
           important: true,
-          userId: validId
         }
   
         await api
           .post('/api/notes')
+          .set('Authorization', `Bearer ${oneMinuteToken}`)
           .send(newNote)
           .expect(201)
           .expect('Content-Type', /application\/json/)
@@ -174,15 +189,15 @@ describe('when there is one user in the database', () => {
       })
   
       test('fails with status code 400 if content missing', async () => {
-        const validId = await helper.validUserId()
+        const oneMinuteToken = await helper.oneMinuteToken()
 
         const newNote = {
-          important: true,
-          userId: validId
+          important: true
         }
   
         await api
           .post('/api/notes')
+          .set('Authorization', `Bearer ${oneMinuteToken}`)
           .send(newNote)
           .expect(400)
   

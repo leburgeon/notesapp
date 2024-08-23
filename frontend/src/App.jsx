@@ -1,14 +1,14 @@
-import Note from './components/Note'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import NotesDisplay from './components/NotesDisplay'
 import NoteForm from './components/NoteForm'
 import ShowButton from './components/ShowButton'
 import noteService from './services/notes'
 import Notification from './components/Notification'
+import loginService from './services/login'
+import LoginForm from './components/LoginForm'
 
 
-const App = (props) => {
+const App = () => {
   // State for the notes to display
   const [notes, setNotes] = useState([])
   // State for controlling the new note input value
@@ -17,7 +17,45 @@ const App = (props) => {
   const [showAll, setShowAll] = useState(true)
   // Piece of state for the error message
   const [errorMessage, setErrorMessage] = useState(null)
+  // Piece of state for controlling username input
+  const [username, setUsername] = useState('')
+  // Piece of state for controlling password input
+  const [password, setPassword] = useState('')
+  // Piece of state for storing the user
+  const [user, setUser] = useState(null)
 
+  // Method for handling logging in
+  const handleLogin = async (event) => {
+    event.preventDefault()
+    try {
+      const user = await loginService.login({
+        username, password
+      })
+      window.localStorage.setItem(
+        'loggedNoteappUser', JSON.stringify(user)
+      )
+      noteService.setToken(user.token)
+      setUser(user)
+      setUsername('')
+      setPassword('')
+    } catch (exception) {
+      setErrorMessage('Wrong credz')
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
+    }
+  }
+
+  // Effect hook for checking if data for a logged-in user exist in the localStorage
+  // Empty array of dependencies only calls the effect after the first render of the object
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedNoteappUser')
+    if (loggedUserJSON){
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      noteService.setToken(user.token)
+    }
+  }, [])
 
   // Effect hook for fetching the notes data from server
   useEffect(() => {
@@ -31,15 +69,40 @@ const App = (props) => {
       })
   }, [])
 
+  // For logging the user out 
+  const logout = () => {
+    setUser(null)
+    window.localStorage.removeItem('loggedNoteappUser')
+    noteService.setToken(null)
+  }
+
+  // For generating the login form
+  const loginForm = () => (
+    <LoginForm password={password} 
+      username={username} setPassword={setPassword} 
+      setUsername={setUsername} handleLogin={handleLogin} />
+  )
+
+  // Generates the form component for adding a new note
+  const notesForm = () => (
+    <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={({target}) => setNewNote(target.value)}/>
+  )
+
+  // Generates the display for the notes as a *functional component* 
+  const notesDisplay = () => (
+    <>
+      <div> 
+        <ShowButton showAll={showAll} setShowAll={setShowAll}/>
+      </div>
+      <NotesDisplay notesToShow={notesToShow} toggleImportanceOf={toggleImportanceOf}/>
+    </>
+  )
+
   // For generating the list of notes to show based on the showAll filter
   const notesToShow = showAll
     ? notes 
     : notes.filter(note => note.important)
 
-  // Controller for new note input component
-  const handleNoteChange = (event) => {
-    setNewNote(event.target.value)
-  }
 
   // Event handler for adding a new note to the server using axios post request
   const handleNewNote = (event) => {
@@ -77,7 +140,7 @@ const App = (props) => {
       .then(changedNote => 
         // This call updates the notes with the updated note, using the id to identify it in the notes array
         setNotes(notes.map(note => note.id !== id ? note : changedNote))
-      ).catch(error => {
+      ).catch(() => {
         setErrorMessage(
           `Note '${note.content}' was already removed from server`
         )
@@ -92,11 +155,18 @@ const App = (props) => {
     <div>
       <h1>Notes</h1>
       <Notification message={errorMessage}/>
-      <div> 
-        <ShowButton showAll={showAll} setShowAll={setShowAll}/>
-      </div>
-      <NotesDisplay notesToShow={notesToShow} toggleImportanceOf={toggleImportanceOf}/>
-      <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={handleNoteChange}/>
+
+      {/* This is a simplified ternary operator for conditionally rendering components only when a condition is true */}
+      {
+        user === null 
+          ? loginForm()
+          : <div>
+            <p>{user.name} logged-in</p>
+            <button onClick={logout}>Logout</button>
+            {notesDisplay()}
+            {notesForm()}
+          </div>
+      }
     </div>
   )
 }

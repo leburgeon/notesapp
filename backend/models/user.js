@@ -31,7 +31,6 @@ userSchema.set('toJSON', {
     delete returnedObject._id
     delete returnedObject.__v
     delete returnedObject.passwordHash
-    console.log("########## users tojson called", returnedObject)
   }
 })
 
