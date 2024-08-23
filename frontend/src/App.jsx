@@ -23,6 +23,8 @@ const App = () => {
   const [password, setPassword] = useState('')
   // Piece of state for storing the user
   const [user, setUser] = useState(null)
+  // State for showing the login form or not
+  const [loginVisible, setLoginVisible] = useState(false)
 
   // Method for handling logging in
   const handleLogin = async (event) => {
@@ -77,11 +79,23 @@ const App = () => {
   }
 
   // For generating the login form
-  const loginForm = () => (
-    <LoginForm password={password} 
-      username={username} setPassword={setPassword} 
-      setUsername={setUsername} handleLogin={handleLogin} />
-  )
+  const loginForm = () => {
+    const showWhenVisible = {display: loginVisible ? '' : 'none'}
+    const hideWhenVisible = {display: loginVisible ? 'none' : ''}
+    return (
+      <div>
+        <div style={hideWhenVisible}>
+          <button onClick={() => setLoginVisible(true)}>Log in</button>
+        </div>
+        <div style={showWhenVisible}>
+          <LoginForm password={password} 
+            username={username} setPassword={setPassword} 
+            setUsername={setUsername} handleLogin={handleLogin} />
+          <button onClick={() => setLoginVisible(false)}>Cancel</button>
+        </div>
+      </div>
+    )
+  }
 
   // Generates the form component for adding a new note
   const notesForm = () => (
@@ -91,6 +105,8 @@ const App = () => {
   // Generates the display for the notes as a *functional component* 
   const notesDisplay = () => (
     <>
+      <p>{user.name} logged-in</p>
+      <button onClick={logout}>Logout</button>
       <div> 
         <ShowButton showAll={showAll} setShowAll={setShowAll}/>
       </div>
@@ -154,19 +170,16 @@ const App = () => {
   return (
     <div>
       <h1>Notes</h1>
+
       <Notification message={errorMessage}/>
 
       {/* This is a simplified ternary operator for conditionally rendering components only when a condition is true */}
-      {
-        user === null 
-          ? loginForm()
-          : <div>
-            <p>{user.name} logged-in</p>
-            <button onClick={logout}>Logout</button>
-            {notesDisplay()}
-            {notesForm()}
-          </div>
-      }
+
+      {user === null && loginForm()}
+
+      {user !== null && notesDisplay()}
+      {user !== null && notesForm()}
+
     </div>
   )
 }
