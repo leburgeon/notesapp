@@ -6,6 +6,7 @@ import noteService from './services/notes'
 import Notification from './components/Notification'
 import loginService from './services/login'
 import LoginForm from './components/LoginForm'
+import Togglable from './components/Togglable'
 
 
 const App = () => {
@@ -80,26 +81,20 @@ const App = () => {
 
   // For generating the login form
   const loginForm = () => {
-    const showWhenVisible = {display: loginVisible ? '' : 'none'}
-    const hideWhenVisible = {display: loginVisible ? 'none' : ''}
-    return (
-      <div>
-        <div style={hideWhenVisible}>
-          <button onClick={() => setLoginVisible(true)}>Log in</button>
-        </div>
-        <div style={showWhenVisible}>
+      return (
+        <Togglable buttonLabel={'Login'}>
           <LoginForm password={password} 
             username={username} setPassword={setPassword} 
             setUsername={setUsername} handleLogin={handleLogin} />
-          <button onClick={() => setLoginVisible(false)}>Cancel</button>
-        </div>
-      </div>
-    )
+        </Togglable>
+      )
   }
 
   // Generates the form component for adding a new note
   const notesForm = () => (
-    <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={({target}) => setNewNote(target.value)}/>
+    <Togglable buttonLabel={'add note'}>
+      <NoteForm newNote={newNote} handleNewNote={handleNewNote} handleNoteChange={({target}) => setNewNote(target.value)}/>
+    </Togglable>
   )
 
   // Generates the display for the notes as a *functional component* 
