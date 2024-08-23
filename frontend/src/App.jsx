@@ -12,22 +12,15 @@ import Togglable from './components/Togglable'
 const App = () => {
   // State for the notes to display
   const [notes, setNotes] = useState([])
-  // State for controlling the new note input value
-  const [newNote, setNewNote] = useState("")
   // State for maintaining importance filter
   const [showAll, setShowAll] = useState(true)
   // Piece of state for the error message
   const [errorMessage, setErrorMessage] = useState(null)
-  // Piece of state for controlling username input
-  const [username, setUsername] = useState('')
-  // Piece of state for controlling password input
-  const [password, setPassword] = useState('')
   // Piece of state for storing the user
   const [user, setUser] = useState(null)
 
   // Method for handling logging in
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async ({ username, password }) => {
     try {
       const user = await loginService.login({
         username, password
@@ -37,8 +30,6 @@ const App = () => {
       )
       noteService.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (exception) {
       setErrorMessage('Wrong credz')
       setTimeout(() => {
@@ -81,9 +72,7 @@ const App = () => {
   const loginForm = () => {
       return (
         <Togglable buttonLabel={'Login'}>
-          <LoginForm password={password} 
-            username={username} setPassword={setPassword} 
-            setUsername={setUsername} handleLogin={handleLogin} />
+          <LoginForm handleLogin={handleLogin} />
         </Togglable>
       )
   }
@@ -118,8 +107,7 @@ const App = () => {
     noteService
       .create(newNoteObject)
       .then(returnedNote => {
-        setNotes(notes.concat(returnedNote))
-        setNewNote('')
+        setNotes(oldNotes => [...oldNotes, returnedNote])
       })
   }
   
