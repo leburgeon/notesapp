@@ -154,6 +154,8 @@ const App = () => {
       {user !== null && notesDisplay()}
       {user !== null && notesForm()}
 
+      <div>Note app created during UoH FSO</div>
+
     </div>
   )
 }

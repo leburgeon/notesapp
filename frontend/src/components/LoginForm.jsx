@@ -18,6 +18,7 @@ const LoginForm = ({
           username
         <br></br>
         <input
+          data-testid='username'
           type='text'
           value={username}
           name='Username'
@@ -29,6 +30,7 @@ const LoginForm = ({
           password
         <br></br>
         <input
+          data-testid='password'
           type='password'
           value={password}
           name='Password'
