@@ -89,14 +89,14 @@ const App = () => {
 
   // Generates the display for the notes as a *functional component*
   const notesDisplay = () => (
-    <>
+    <div data-testid={'notesDisplayDiv'}>
       <p>{user.name} logged-in</p>
       <button onClick={logout}>Logout</button>
       <div>
         <ShowButton showAll={showAll} setShowAll={setShowAll}/>
       </div>
       <NotesDisplay notesToShow={notesToShow} toggleImportanceOf={toggleImportanceOf}/>
-    </>
+    </div>
   )
 
   // For generating the list of notes to show based on the showAll filter

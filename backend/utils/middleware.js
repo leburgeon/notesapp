@@ -1,6 +1,7 @@
 const logger = require('./logger')
 const { passwordStrength } = require('check-password-strength')
 require('express-async-errors')
+const User = require('../models/user')
 
 const jwt = require('jsonwebtoken')
 
@@ -65,19 +66,23 @@ const getTokenFrom = req => {
   return null
 }
 
-const validateToken = async (req, res, next) => {
-  // jwt.verify method takes the auth token and verifies the signature part of it using the secret stored in the environment variable SECRET. If it verifies, it returns the decoded token
-  const token = getTokenFrom(req);
-  const decodedToken = jwt.verify(token, process.env.SECRET);
+const extractUser = async (req, res, next) => {
+  const token = getTokenFrom(req)
+  const decoded = jwt.verify(token, process.env.SECRET)
 
   // If the token was not varified using the secret, returning null, or the token does not contain an id field, the token is invalid
   // Validation of signature is done by reconcatinating the header and payload, and rehashing using the secret. if the signature is the same, the token is valid (was produced by the server)
-  if (!decodedToken.id) {
+  if (!decoded.id) {
     return res.status(401).json({error: 'invalid token'})
   }
 
-  // Assigns the user information to the request for subsequest middlewear to use
-  req.user = { id: decodedToken.id}
+  const user = await User.findById(decoded.id)
+
+  if (!user){
+    return res.status(401).json({error: 'user no long exists, please re-login'}).end()
+  }
+
+  req.body.user = user
   next()
 }
 
@@ -86,5 +91,5 @@ module.exports = {
   unknownEndpoint,
   errorHandler,
   passwordValidator,
-  validateToken
+  extractUser
 }

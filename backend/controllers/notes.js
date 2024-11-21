@@ -1,7 +1,6 @@
 const notesRouter = require('express').Router()
 const Note = require('../models/note')
-const User = require('../models/user')
-const { validateToken } = require('../utils/middleware')
+const { extractUser } = require('../utils/middleware')
 
 notesRouter.get('/', async (request, response) => { 
   const notes = await Note
@@ -18,15 +17,14 @@ notesRouter.get('/:id', async (request, response, next) => {
   }
 })
 
-notesRouter.post('/',validateToken , async (request, response, next) => {
+notesRouter.post('/', extractUser , async (request, response, next) => {
   const body = request.body
-
-  const user = await User.findById(request.user.id)
+  const {user} = body
 
   const note = new Note({
     content: body.content,
     important: body.important || false,
-    user: user._id,
+    user: body.user._id,
   })
   
   const savedNote = await note.save()

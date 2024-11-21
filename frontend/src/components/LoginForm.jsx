@@ -38,7 +38,7 @@ const LoginForm = ({
           onChange={({ target }) => setPassword(target.value)}
         />
       </div>
-      <button type='Submit'>Login</button>
+      <button data-testid='loginButton' type='Submit'>Login</button>
     </form>
   )
 }
